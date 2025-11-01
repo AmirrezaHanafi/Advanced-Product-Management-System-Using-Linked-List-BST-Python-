@@ -1,31 +1,39 @@
+# ----------------------------
+#  Node & Doubly Linked List
+# ----------------------------
+
 class Node:
     def __init__(self, data):
         self.data = data  
         self.next = None  
         self.prev = None  
 
+
 class List:
+    """ Circular doubly-linked list implementation """
+    
     def __init__(self):        
         self.head = Node(None)
         self.head.next = self.head
         self.head.prev = self.head
         self.n = 0
         
-    def get(self, ind):
-        if ind >= self.size(): 
-            raise Exception('Out of list')
-        x = self.head
-        for i in range(ind):
+    def get(self, i):
+        if i >= self.size(): 
+            raise Exception('Index Out of Range')
+        x = self.head.next
+        for _ in range(i):
             x = x.next
         return x
     
     def insert_after(self, x, data):
+        """ Insert a new node after x """
         y = Node(data)
         self.n += 1 
         y.prev = x
         y.next = x.next
+        x.next.prev = y
         x.next = y
-        y.next.prev = y
         return y
         
     def delete(self, x):
@@ -37,8 +45,9 @@ class List:
         return x
         
     def find(self, val):
+        """ Find first node with given value """
         x = self.head.next
-        for i in range(self.size()):
+        for _ in range(self.size()):
             if x.data == val:
                 return x
             x = x.next
@@ -48,7 +57,10 @@ class List:
         return self.n
     
 
-# Converts a linked list to a regular list.
+# ----------------------------
+# Linked List Helper Functions
+# ----------------------------
+
 def linkedListToList(linked_list):
     result = []
     current = linked_list.head.next
@@ -57,29 +69,16 @@ def linkedListToList(linked_list):
         current = current.next
     return result
 
-
-# Sorts a list using the merge sort algorithm.
-def mergeSort(lst):
-    if len(lst) <= 1:
-        return lst
-    mid = len(lst) // 2
-    left = mergeSort(lst[:mid])
-    right = mergeSort(lst[mid:])
-    return merge(left, right)
+def listToTheLinkedList(values):
+    l = List()
+    for val in values:
+        l.insert_after(l.head, val)
+    return l
 
 
-def merge(left, right):
-    result = []
-    while left and right:
-        if left[0] < right[0]:
-            result.append(left.pop(0))
-        else:
-            result.append(right.pop(0))
-    result.extend(left)
-    result.extend(right)
-    return result
-
-
+# ----------------------------
+# Median via BST
+# ----------------------------
 
 class TreeNode:
     def __init__(self, value):
@@ -87,53 +86,36 @@ class TreeNode:
         self.left = None
         self.right = None
 
-def insert_into_bst(root, value):
+def insertBST(root, value):
     if root is None:
         return TreeNode(value)
-    elif value < root.value:
-        root.left = insert_into_bst(root.left, value)
+    if value < root.value:
+        root.left = insertBST(root.left, value)
     else:
-        root.right = insert_into_bst(root.right, value)
+        root.right = insertBST(root.right, value)
     return root
 
-def listToBstTree(arr):
+def inorderBST(node):
+    return inorderBST(node.left) + [node.value] + inorderBST(node.right) if node else []
+
+def calculateMedian(arr):
     root = None
-    for value in arr:
-        root = insert_into_bst(root, value)
-    return root
+    for v in arr:
+        root = insertBST(root, v)
+    sorted_vals = inorderBST(root)
 
-def inorder_bst(node):
-    result = []
-    if node:
-        result.extend(inorder_bst(node.left))   
-        result.append(node.value)
-        result.extend(inorder_bst(node.right))  
-    return result
-
-
-# Calculates the median of a list for third option.
-def calculateMedian(lst):
-    root=listToBstTree(lst)
-    sorted_lst = inorder_bst(root)
-    print(sorted_lst)
-    n = len(sorted_lst)
+    n = len(sorted_vals)
     if n % 2 == 1:
-        return sorted_lst[n // 2]
-    else:
-        return (sorted_lst[n // 2 - 1] + sorted_lst[n // 2]) / 2
-
+        return sorted_vals[n // 2]
+    return (sorted_vals[n//2 - 1] + sorted_vals[n//2]) / 2
 
 def Calculate_Median(linked_list):
-    lst = linkedListToList(linked_list)
-    return calculateMedian(lst)
+    return calculateMedian(linkedListToList(linked_list))
 
-#Convert list to linked list
-def listToTheLinckedlist(oldList):
-    linked_list = List()
-    for product in oldList:
-        linked_list.insert_after(linked_list.head, product)
-    return linked_list
 
+# ----------------------------
+# BST Node for Products
+# ----------------------------
 
 class BSTNode:
     def __init__(self, product):
@@ -141,196 +123,116 @@ class BSTNode:
         self.left = None
         self.right = None
 
-#################
+
+# ----------------------------
+# Product BST by name
+# ----------------------------
+
 class ProductBST:
+    """ BST sorted by product name """
+
     def __init__(self):
         self.root = None
 
     def insert(self, product):
-        if self.root is None:
-            self.root = BSTNode(product)
-        else:
-            self._insert(self.root, product)
+        self.root = self._insert(self.root, product)
 
     def _insert(self, node, product):
+        if not node:
+            return BSTNode(product)
         if product.productName < node.product.productName:
-            if node.left is None:
-                node.left = BSTNode(product)
-            else:
-                self._insert(node.left, product)
+            node.left = self._insert(node.left, product)
         elif product.productName > node.product.productName:
-            if node.right is None:
-                node.right = BSTNode(product)
-            else:
-                self._insert(node.right, product)
-
-    def delete(self, productName):
-        self.root = self._delete(self.root, productName)
-
-    def _delete(self, node, productName):
-        if node is None:
-            return node
-
-        if productName < node.product.productName:
-            node.left = self._delete(node.left, productName)
-        elif productName > node.product.productName:
-            node.right = self._delete(node.right, productName)
-        else:
-            if node.left is None:
-                return node.right
-            elif node.right is None:
-                return node.left
-
-            temp = self._min_value_node(node.right)
-            node.product = temp.product
-            node.right = self._delete(node.right, temp.product.productName)
-
+            node.right = self._insert(node.right, product)
         return node
-
-    def _min_value_node(self, node):
-        current = node
-        while current.left is not None:
-            current = current.left
-        return current
 
     def search(self, name):
         return self._search(self.root, name)
 
     def _search(self, node, name):
-        if node is None or node.product.productName == name:
+        if not node or node.product.productName == name:
             return node
         if name < node.product.productName:
             return self._search(node.left, name)
         return self._search(node.right, name)
 
+    def delete(self, name):
+        self.root = self._delete(self.root, name)
 
-#################
+    def _delete(self, node, name):
+        if not node: 
+            return node
+        
+        # Standard BST delete logic
+        if name < node.product.productName:
+            node.left = self._delete(node.left, name)
+        elif name > node.product.productName:
+            node.right = self._delete(node.right, name)
+        else:
+            if not node.left: return node.right
+            if not node.right: return node.left
+            temp = self._min(node.right)
+            node.product = temp.product
+            node.right = self._delete(node.right, temp.product.productName)
+        return node
+
+    def _min(self, node):
+        while node.left:
+            node = node.left
+        return node
+
+
+# ----------------------------
+# Price BST
+# ----------------------------
+
 class PriceBST:
+    """ BST sorted by price """
+
     def __init__(self):
         self.root = None
 
-    #Add new product
     def insert(self, product):
-        if self.root is None:
-            self.root = BSTNode(product)
-        else:
-            self.insert2(self.root, product)
+        self.root = self._insert(self.root, product)
 
-    #Add new product in bst tree
-    def insert2(self, node, product):
+    def _insert(self, node, product):
+        if not node:
+            return BSTNode(product)
         if product.priceOfThisYear < node.product.priceOfThisYear:
-            if node.left is None:
-                node.left = BSTNode(product)
-            else:
-                self.insert2(node.left, product)
-        elif product.priceOfThisYear > node.product.priceOfThisYear:
-            if node.right is None:
-                node.right = BSTNode(product)
-            else:
-                self.insert2(node.right, product)
-
-    #Delete a product in bst tree
-    def delete(self, price):
-        self.root = self._delete(self.root, price)
-
-    def _delete(self, node, price):
-        if node is None:
-            return node
-
-        if price < node.product.priceOfThisYear:
-            node.left = self._delete(node.left, price)
-        elif price > node.product.priceOfThisYear:
-            node.right = self._delete(node.right, price)
+            node.left = self._insert(node.left, product)
         else:
-            if node.left is None:
-                return node.right
-            elif node.right is None:
-                return node.left
-
-            temp = self._min_value_node(node.right)
-            node.product = temp.product
-            node.right = self._delete(node.right, temp.product.priceOfThisYear)
-
+            node.right = self._insert(node.right, product)
         return node
 
-    #Get minimum value in bst tree
-    def _min_value_node(self, node):
-        current = node
-        while current.left is not None:
-            current = current.left
-        return current
-
-
-    #Get In order of bst tree
-    #In order give a sorted array
     def inOrder(self, node):
-        order_list = []
-        if node is None:
-            return order_list
+        return [] if not node else self.inOrder(node.left) + [node.product] + self.inOrder(node.right)
 
-        order_list.extend(self.inOrder(node.left))
-        order_list.append(node.product)
-        order_list.extend(self.inOrder(node.right))
-
-        return order_list
-    
-
-    #array of smallest price by using in order in bst tree
     def sorted_smallest_price(self):
-        array = self.inOrder(self.root)
-        for product in array:
-            print(product.productName)
+        for p in self.inOrder(self.root):
+            print(p.productName)
 
-
-    #array of biggest price by using reverse of in order in bst tree
     def sorted_biggest_price(self):
-        array = reversed(self.inOrder(self.root))
-        for product in array:
-            print(product.productName)
+        for p in reversed(self.inOrder(self.root)):
+            print(p.productName)
 
 
-    #finding a product by price in bst tree
-    def find_product_by_price(self, price):
-        return self.search(self.root, price)
+# ----------------------------
+# Product Class
+# ----------------------------
 
-    def search(self, node, price):
-        if node is None or node.product.priceOfThisYear == price:
-            return node
-        if price < node.product.priceOfThisYear:
-            return self.search(node.left, price)
-        return self.search(node.right,price)
-
-    #for show a list of price in special range in last year
-    def range_of_price(self, range1, range2):
-        if range2 < range1:
-            range2, range1 = range1, range2
-
-        productRange1 = self.find_product_by_price(range1)
-        productRange2 = self.find_product_by_price(range2)
-
-        while productRange1 is None:
-            range1 += 1
-            productRange1 = self.find_product_by_price(range1)
-        while productRange2 is None:
-            range2 -= 1
-            productRange2 = self.find_product_by_price(range2)
-
-        list = self.inOrder(self.root)
-        for product in list:
-            if product.priceOfThisYear >= productRange1.product.priceOfThisYear and product.priceOfThisYear <= productRange2.product.priceOfThisYear:
-                print(product.productName)
-
-############
 class Product:
-    def __init__(self, productName, productQcode, listOfPrice):
-        self.productName = productName
-        self.productQcode = productQcode
-        self.listOfPrice = listToTheLinckedlist(listOfPrice)
-        self.priceOfThisYear = listOfPrice[0]
+    def __init__(self, name, qcode, prices):
+        self.productName = name
+        self.productQcode = qcode
+        self.listOfPrice = listToTheLinkedList(prices)
+        self.priceOfThisYear = prices[0]
         self.medianPrice = Calculate_Median(self.listOfPrice)
-############
 
-############
+
+# ----------------------------
+# Product Manager
+# ----------------------------
+
 class ProductManager:
     def __init__(self):
         self.products = []
@@ -342,105 +244,63 @@ class ProductManager:
         self.product_bst.insert(product)
         self.price_bst.insert(product)
 
-    def check_qr_code(self, qr_code):
-        for product in self.products:
-            if product.productQcode == qr_code:
-                return True
-        return False
-
     def find_product_by_name(self, name):
-        result_node = self.product_bst.search(name)
-        return result_node.product if result_node else None
-#############
+        node = self.product_bst.search(name)
+        return node.product if node else None
+
+    def check_qr_code(self, code):
+        return any(p.productQcode == code for p in self.products)
 
 
-#button 1 add new product
-def Add_new_product():
-    name = input("Enter name of product: ")
-    Qcode = input("Enter Qcode of your product: ")
-    if product_manager.check_qr_code(Qcode):
-        print("QR code already exists.")
-        return
-    listprice = []
-    while True:
-        print("Enter the consecutive prices of your product from this year (2025) to previous years in order and enter the number 0 when you are finished.")
-        added = int(input("Price: "))
-        if added:
-            listprice.append(added)
-        elif added == 0:
-            break
-    product = Product(name, Qcode, listprice)
-    product_manager.add_product(product)
-    return
-
-
-def Add_new_price(name):
-    product = product_manager.find_product_by_name(name)
-    if product is None:
-        raise Exception("Product not found")
-    while True:
-        print("Enter the new price of your product.")
-        added = int(input("Price: "))
-        if added:
-            product.listOfPrice.insert_after(product.listOfPrice.head, added)
-            product.medianPrice = Calculate_Median(product.listOfPrice)
-            break
-        else:
-            print("Invalid price. Please enter a valid price.")
-
-
-#button 2  Delete product by name
-def Delete_product(name):
-    product = product_manager.find_product_by_name(name)
-    if product is None:
-        raise Exception("Product not found")
-    else:
-        # Delete from product BST
-        product_manager.product_bst.delete(name)
-        # Delete from price BST
-        current_price = product.listOfPrice.head.next
-        while current_price != product.listOfPrice.head:
-            product_manager.price_bst.delete(current_price.data)
-            current_price = current_price.next
-        # Remove from the product list
-        product_manager.products.remove(product)
-
+# ----------------------------
+# User Interface Functions
+# ----------------------------
 
 product_manager = ProductManager()
 
-flagForWholeProgramme = True
+def AddProduct():
+    name = input("Product name: ")
+    qcode = input("QR Code: ")
 
-while flagForWholeProgramme:
-    inputNumber = int(input("Enter the number: (1.Add new product, 2.Delete a product, 3.Median, 4.List of smallest price , 5.List of biggest price , 6.A range of price, 7.exit) "))
+    if product_manager.check_qr_code(qcode):
+        print("⚠ QR already exists")
+        return
 
-    if inputNumber == 1:
-        if int(input("Do you want to add a product or new price of a product:  1=product , 0=New price  :")):
-            Add_new_product()
+    prices = []
+    print("Enter yearly prices (0 to finish):")
+    while True:
+        p = int(input("Price: "))
+        if p == 0: break
+        prices.append(p)
+
+    product_manager.add_product(Product(name, qcode, prices))
+
+
+def AddNewPrice(pname):
+    product = product_manager.find_product_by_name(pname)
+    if not product:
+        print("❌ Product not found")
+        return
+    newprice = int(input("New price: "))
+    product.listOfPrice.insert_after(product.listOfPrice.head, newprice)
+    product.medianPrice = Calculate_Median(product.listOfPrice)
+
+
+# ----------------------------
+# Main Menu Loop
+# ----------------------------
+
+while True:
+    print("\n1 Add product / price\n2 Delete product\n3 Show medians\n4 Smallest prices\n5 Largest prices\n6 Exit")
+    c = int(input("> "))
+
+    if c == 1:
+        if int(input("1 = Add product, 0 = Add price: ")):
+            AddProduct()
         else:
-            nameofproduct = input("Enter the name of product which you want to add price:")
-            Add_new_price(nameofproduct)
-
-    elif inputNumber == 2:
-        name = input("Enter the name of the product to delete: ")
-        Delete_product(name)
-
-    elif inputNumber == 3:
-        for product in product_manager.products:
-            print(f"Product Name: {product.productName}, Median Price: {product.medianPrice}")
-
-    elif inputNumber == 4:
-        product_manager.price_bst.sorted_smallest_price()
-
-    elif inputNumber == 5:
-        product_manager.price_bst.sorted_biggest_price()
-
-    elif inputNumber == 6:
-        range1 = int(input("Enter the lower range: "))
-        range2 = int(input("Enter the upper range: "))
-        product_manager.price_bst.range_of_price(range1, range2)
-
-    elif inputNumber == 7:
+            AddNewPrice(input("Product name: "))
+    elif c == 3:
+        for p in product_manager.products:
+            print(p.productName, "Median:", p.medianPrice)
+    elif c == 6:
         break
-
-    else:
-        print("Please input a number between 1 to 7, try again:")
